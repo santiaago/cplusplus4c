@@ -1,8 +1,14 @@
+
 # Compiled Object files
 *.slo
 *.lo
 *.o
 
+# emacs
+*~
+
+#exec
+*.out
 # Compiled Dynamic libraries
 *.so
 *.dylib
