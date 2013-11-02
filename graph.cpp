@@ -6,7 +6,7 @@
 #include <time.h>
 
 using namespace std;
-//using std::vector;
+
 
 class Edgenode{//node
 public:
@@ -43,16 +43,6 @@ private:
   vector< int> node_values;
   double density;
 };
-
-// class PriorityQueue{
-// public:
-//   void chgPrioirity(PQ, priority); // changes the priority (node value) of queue element.
-//   void minPrioirty(PQ); // removes the top element of the queue.
-//   bool contains(PQ, queue_element); // does the queue contain queue_element.
-//   void insert(PQ, queue_element); // insert queue_element into queue
-//   top(PQ); // returns the top element of the queue.
-//   int size(PQ); // return the number of queue_elements.
-// };
 
 Graph::Graph(int nnodes):
   nedges(0), nvertices(nnodes), edges(nnodes, vector<Edgenode*>(nnodes)), node_values(nnodes, 0){}
@@ -197,6 +187,36 @@ void Graph::print(){
     }
     cout << endl;
   }
+}
+
+class ShortestPath{
+public:
+  vector<int> vertices(Graph* g); // list of vertices in Graph G(V,E).  
+  vector<int> path(int u, int w); //path(u, w): find shortest path between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
+  double path_size(u, w); // path_size(u, w): return the path cost associated with the shortest path.
+};
+
+// list of vertices in Graph G(V,E).
+vector<int> ShortestPath::vertices(Graph* g){
+  vector<int> vertices;
+  for(int i = 0; i < g->V(); ++i)
+    vertices.push_back(i);
+  return vertices;
+}
+
+// path(u, w): find shortest path between u-w 
+// and returns the sequence of vertices representing shorest path
+//  u-v1-v2-…-vn-w.
+vector<int> ShortestPath::path(int u, int w){
+  vector<int> sequence;
+  sequence.push_back(u);
+  // sortest path here
+  return sequence;
+}
+
+ // path_size(u, w): return the path cost associated with the shortest path.
+double ShortestPath::path_size(int u, int w){
+  return 0;
 }
 
 void test_graph(){
