@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <time.h>
 
 using namespace std;
 //using std::vector;
@@ -11,7 +12,7 @@ class Edgenode{//node
 public:
   Edgenode(): value(-1){ }
   Edgenode(int v):value(v){}
-  int value;
+  double value; // distance
 };
 
 class Graph{
@@ -19,6 +20,8 @@ public:
   Graph(): 
     nvertices(0), nedges(0), edges(0, vector<Edgenode*>(0)), node_values(0,0){}
   Graph(int number_nodes);
+  Graph(int nnodes, double density);
+
   void initialize();
   int V(); // returns the number of vertices in the graph
   int E(); // returns the number of edges in the graph
@@ -29,19 +32,45 @@ public:
   void remove(int x, int y); // removes the edge from x to y, if it is there.
   int get_node_value(int x); // returns the value associated with the node x.
   void set_node_value(int x, int a); // sets the value associated with the node x to a.
-  int get_edge_value(int x, int y); // returns the value associated to the edge (x,y).
+  double get_edge_value(int x, int y); // returns the value associated to the edge (x,y).
   void set_edge_value(int x, int y, Edgenode *v); // sets the value associated to the edge (x,y) to v.
+  Edgenode* get_edge_node(int x, int y);
   void print();
 private:
   int nvertices; // number of vertices
   int nedges; // number of edges
   vector< vector<Edgenode*> > edges; // adjacency information
   vector< int> node_values;
+  double density;
 };
 
 Graph::Graph(int nnodes):
-  nedges(0), nvertices(nnodes), edges(nnodes, vector<Edgenode*>(nnodes)), node_values(nnodes, 0)
-{}
+  nedges(0), nvertices(nnodes), edges(nnodes, vector<Edgenode*>(nnodes)), node_values(nnodes, 0){}
+
+Graph::Graph(int nnodes, double dense):
+  nedges(0), nvertices(nnodes), edges(nnodes, vector<Edgenode*>(nnodes)), node_values(nnodes, 0), density(dense){
+
+  // Initialize random seed
+  srand(time(NULL));
+  double random_distance;
+  for(int i = 0; i < edges.size(); ++i){
+    // might not need this : node_values[i] = 1;
+    nvertices++;
+    for(int j = i; j < edges.size(); ++j){
+      if(i == j){
+  	edges[i][j] = NULL; // null pointer no loops
+      } else {
+	if( ((double) rand() / (RAND_MAX)) < density){
+	  // generate random number between 1 and 10
+	  random_distance = rand() %10 + 1;
+	  edges[i][j] = new Edgenode(random_distance);
+	  edges[j][i] = edges[i][j]; // undirected graph.
+	  nedges++;
+	}
+      }
+    }
+  }
+}
 
 void Graph::initialize(){
   for(int i = 0; i < edges.size(); ++i){
@@ -49,10 +78,10 @@ void Graph::initialize(){
     nvertices++;
     for(int j = i; j < edges.size(); ++j){
       if(i == j){
-	edges[i][j] = 0; // null pointer no loops
+	edges[i][j] = NULL; // null pointer no loops
       } else {
 	edges[i][j] = new Edgenode(1);
-	edges[j][i] = edges[i][j];
+	edges[j][i] = edges[i][j]; // undirected graph.
 	nedges++;
       }
     }
@@ -123,21 +152,29 @@ void Graph::set_node_value(int x, int a){
 }
 
 // returns the value associated to the edge (x,y).
-int Graph::get_edge_value(int x, int y){
+double Graph::get_edge_value(int x, int y){
   if(x < edges.size() && y < edges[x].size()){  
     if(edges[x][y])
-    return edges[x][y]->value;
+      return edges[x][y]->value;
   }
   return 0;
 }
 
-// sets the value associated to the edge (x,y) 
-void Graph::set_edge_value(int x, int y, Edgenode *e){
+// sets the value associated to the edge (x,y) to v.
+void Graph::set_edge_value(int x, int y, Edgenode *v){
   if(x < edges.size() && y < edges[x].size()){  
-    if(edges[x][y] && e){
-      e->value = edges[x][y]->value;
+    if(edges[x][y] && v){
+      v->value = edges[x][y]->value;
     }
   }
+}
+
+// gets a pointer to the edge associated to (x,y)
+Edgenode* Graph::get_edge_node(int x, int y){
+  if(x < edges.size() && y < edges[x].size()){  
+    return edges[x][y];
+  }
+  return NULL;
 }
 
 void Graph::print(){
@@ -232,23 +269,45 @@ void test_graph(){
   cout << endl;
 
   cout << "test the get_node_value method" << endl;
-  cout << g3.E() << g3.V() << endl;
   for(int i = 0; i < g3.V(); ++i){
     cout << "node value of " << i << " is " << g3.get_node_value(i) << endl;
   }
-  
+  cout << endl;
+
+  cout << "test the set_node_value method" << endl;
+  cout << g3.get_node_value(0) << " " << g3.get_node_value(1) << endl;
+  g3.set_node_value(0,1);
+  cout << g3.get_node_value(0) << " " << g3.get_node_value(1) << endl;  
+  cout << endl;
+
+  cout << "test get_edge_value method" << endl;
+  for(int i = 0; i < g3.V(); ++i){
+    for(int j = i; j < g3.V(); ++j)
+      if(i != j)
+	cout << "edge value of (" << i << " , " << j << ") is: " << g3.get_edge_value(i,j) << endl;
+  }
+  cout << endl;
+
+  cout << "test set_edge_value method" << endl;
+  Edgenode *edgenodeptr = g3.get_edge_node(0,2);
+  cout << "(0,1) : "<< g3.get_edge_value(0,2) << endl;
+  cout << "(0,2) : "<< g3.get_edge_value(1,3) << endl;
+  g3.set_edge_value(1,3,edgenodeptr);
+  cout << "(0,1) : "<< g3.get_edge_value(0,2) << endl;
+  cout << "(0,2) : "<< g3.get_edge_value(1,3) << endl;
 
   cout << endl;
-  //   int get_node_value(Edgenode x); // returns the value associated with the node x.
-  //   void set_node_value(Edgenode x, Edgenode a); // sets the value associated with the node x to a.
-  //   int get_edge_value(int x, int y); // returns the value associated to the edge (x,y).
-  //   void set_edge_value(int x, int y, Edgenode *v); // sets the value associated to the edge (x,y) to v.
-  //   void print();
-  // private:
-  //   int nvertices; // number of vertices
-  //   int nedges; // number of edges
-  //   vector< vector<Edgenode*> > edges; // adjacency information
-  
+
+  cout << "test Graph with density" << endl;
+  cout << endl << "density of 10%" <<endl;
+  Graph g4(10,0.1);
+  g4.print();
+  cout << endl << "density of 20%" <<endl;
+  Graph g5(10,0.2);
+  g5.print();
+  cout << endl << "density of 40%" <<endl;
+  Graph g6(10,0.4);
+  g5.print();
 }
 
 int main(){
