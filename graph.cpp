@@ -44,6 +44,16 @@ private:
   double density;
 };
 
+// class PriorityQueue{
+// public:
+//   void chgPrioirity(PQ, priority); // changes the priority (node value) of queue element.
+//   void minPrioirty(PQ); // removes the top element of the queue.
+//   bool contains(PQ, queue_element); // does the queue contain queue_element.
+//   void insert(PQ, queue_element); // insert queue_element into queue
+//   top(PQ); // returns the top element of the queue.
+//   int size(PQ); // return the number of queue_elements.
+// };
+
 Graph::Graph(int nnodes):
   nedges(0), nvertices(nnodes), edges(nnodes, vector<Edgenode*>(nnodes)), node_values(nnodes, 0){}
 
