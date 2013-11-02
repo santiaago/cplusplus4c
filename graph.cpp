@@ -17,8 +17,9 @@ public:
 class Graph{
 public:
   Graph(): 
-    nvertices(0), nedges(0), edges(0, vector<Edgenode*>(0)){}
+    nvertices(0), nedges(0), edges(0, vector<Edgenode*>(0)), node_values(0,0){}
   Graph(int number_nodes);
+  void initialize();
   int V(); // returns the number of vertices in the graph
   int E(); // returns the number of edges in the graph
   bool adjacent(int x, int y); // tests whether there is an edge from node x to node y.
@@ -26,8 +27,8 @@ public:
   
   void add(int x, int y); // adds to G the edge from x to y, if it is not there.
   void remove(int x, int y); // removes the edge from x to y, if it is there.
-  int get_node_value(Edgenode x); // returns the value associated with the node x.
-  void set_node_value(Edgenode x, Edgenode a); // sets the value associated with the node x to a.
+  int get_node_value(int x); // returns the value associated with the node x.
+  void set_node_value(int x, int a); // sets the value associated with the node x to a.
   int get_edge_value(int x, int y); // returns the value associated to the edge (x,y).
   void set_edge_value(int x, int y, Edgenode *v); // sets the value associated to the edge (x,y) to v.
   void print();
@@ -35,15 +36,18 @@ private:
   int nvertices; // number of vertices
   int nedges; // number of edges
   vector< vector<Edgenode*> > edges; // adjacency information
-
+  vector< int> node_values;
 };
 
 Graph::Graph(int nnodes):
-  nedges(0), nvertices(0), edges(nnodes, vector<Edgenode*>(nnodes))
-{
-  for(int i = 0; i < nnodes; ++i){
+  nedges(0), nvertices(nnodes), edges(nnodes, vector<Edgenode*>(nnodes)), node_values(nnodes, 0)
+{}
+
+void Graph::initialize(){
+  for(int i = 0; i < edges.size(); ++i){
+    node_values[i] = 1;
     nvertices++;
-    for(int j = i; j < nnodes; ++j){
+    for(int j = i; j < edges.size(); ++j){
       if(i == j){
 	edges[i][j] = 0; // null pointer no loops
       } else {
@@ -88,6 +92,7 @@ void Graph::add(int x, int y){
     if(edges[x][y] == 0){
       edges[x][y] = new Edgenode(1);
       edges[y][x] = edges[x][y];
+      nedges++;
     }
   }
 }
@@ -95,19 +100,26 @@ void Graph::add(int x, int y){
 // removes the edge from x to y, if it is there.
 void Graph::remove(int x, int y){
   if(x < edges.size() && y < edges[x].size()){
-    edges[x][y] = 0;
-    edges[y][x] = 0;
+    if(edges[x][y]){
+      edges[x][y] = 0;
+      edges[y][x] = 0;
+      nedges--;
+    }
   }
 }
 
 // returns the value associated with the node x.
-int Graph::get_node_value(Edgenode x){
-  return x.value;
+int Graph::get_node_value(int x){
+  if(0 <= x < node_values.size())
+    return node_values[x];
+  return 0;
 }
 
 // sets the value associated with the node x to a.
-void Graph::set_node_value(Edgenode x, Edgenode a){
-  a.value = x.value;
+void Graph::set_node_value(int x, int a){
+  if(0 <= x <= node_values.size() &&
+     0 <= a <= node_values.size())
+    node_values[a]= node_values[x];
 }
 
 // returns the value associated to the edge (x,y).
@@ -148,6 +160,7 @@ void test_graph(){
 
   cout << "test size constructor" << endl;
   Graph g2(4);
+  g2.initialize();
   g2.print();
   cout << endl;
 
@@ -173,22 +186,59 @@ void test_graph(){
   cout << endl;
 
   cout << "test neighbors method" << endl;
+  cout << "neighbors of node 0" << endl;
   vector<Edgenode*> neighbors1 = g2.neighbors(0);
   for(int i = 0; i < neighbors1.size(); ++i){
     if(neighbors1[i])
       cout << "0 - " << i << endl;
   }
-  cout << "test 2" << endl;
+
+  cout << "neighbors of node 2" << endl;
   vector<Edgenode*> neighbors2 = g2.neighbors(2);
   for(int i = 0; i < neighbors2.size(); ++i){
     if(neighbors2[i])
       cout << "2 - " << i << endl;
   }
   cout << endl;
-  //   vector<Edgenode*> neighbors(int x, int y); // lists all nodes y such that there is an edge from x to y.
+
+  cout << "testing add method" << endl;
+  Graph g3(4);
+  g3.add(0,1);
+  g3.add(0,2);
+  g3.add(1,3);
+  g3.add(2,3);
+  g3.print();
+  cout << endl;
+
+  cout << "testing remove method" << endl;
+  cout << boolalpha << (g3.E() == 4) << endl;
+  cout << "neigbors of 0" << endl;
+  vector<Edgenode*> neighbors3 = g3.neighbors(0);
+  for(int i = 0; i < neighbors3.size(); ++i){
+    if(neighbors3[i])
+      cout << "0 - " << i << endl;
+  }
+  g3.remove(0,1);
+  g3.remove(0,0); // should do nothing
+  g3.remove(1,1); // should do nothing
+  cout << boolalpha << (g3.E() == 3) << endl;
+  cout << "neigbors of 0" << endl;
+  neighbors3 = g3.neighbors(0);
+  for(int i = 0; i < neighbors3.size(); ++i){
+    if(neighbors3[i])
+      cout << "0 - " << i << endl;
+  }
+  g3.print();
+  cout << endl;
+
+  cout << "test the get_node_value method" << endl;
+  cout << g3.E() << g3.V() << endl;
+  for(int i = 0; i < g3.V(); ++i){
+    cout << "node value of " << i << " is " << g3.get_node_value(i) << endl;
+  }
   
-  //   void add(int x, int y); // adds to G the edge from x to y, if it is not there.
-  //   void remove(int x, int y); // removes the edge from x to y, if it is there.
+
+  cout << endl;
   //   int get_node_value(Edgenode x); // returns the value associated with the node x.
   //   void set_node_value(Edgenode x, Edgenode a); // sets the value associated with the node x to a.
   //   int get_edge_value(int x, int y); // returns the value associated to the edge (x,y).
