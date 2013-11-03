@@ -5,14 +5,17 @@
 #include <vector>
 #include <limits> // std::numeric_limits
 #include <queue>
+#include <stack>
+
 using namespace std;
 
-
+const bool kReverse = true; 
+const double kUndefined = -1; // use distance of -1 <=> undefined
 class Edgenode{//node
 public:
-  Edgenode(): value(-1){ }
-  Edgenode(int v):value(v){}
-  double value; // distance
+  Edgenode(): cost(-1){ }
+  Edgenode(int v):cost(v){}
+  double cost; // distance
 };
 
 class Graph{
@@ -54,7 +57,6 @@ Graph::Graph(int nnodes, double dense):
   srand(time(NULL));
   double random_distance;
   for(int i = 0; i < edges.size(); ++i){
-    // might not need this : node_values[i] = 1;
     nvertices++;
     for(int j = i; j < edges.size(); ++j){
       if(i == j){
@@ -101,7 +103,7 @@ int Graph::E(){
 // tests whether there is an edge from node x to node y.
 bool Graph::adjacent(int x, int y){
   if(x < edges.size() && y < edges[x].size()){
-    if(edges[x][y] != 0)
+    if(edges[x][y] != NULL)
       return true;
   }
   return false;
@@ -118,7 +120,7 @@ vector<Edgenode*> Graph::neighbors(int y){
 // adds to G the edge from x to y, if it is not there.
 void Graph::add(int x, int y){
   if(x < edges.size() && y < edges[x].size()){
-    if(edges[x][y] == 0){
+    if(edges[x][y] == NULL){
       edges[x][y] = new Edgenode(1);
       edges[y][x] = edges[x][y];
       nedges++;
@@ -130,8 +132,8 @@ void Graph::add(int x, int y){
 void Graph::remove(int x, int y){
   if(x < edges.size() && y < edges[x].size()){
     if(edges[x][y]){
-      edges[x][y] = 0;
-      edges[y][x] = 0;
+      edges[x][y] = NULL;
+      edges[y][x] = NULL;
       nedges--;
     }
   }
@@ -155,7 +157,7 @@ void Graph::set_node_value(int x, int a){
 double Graph::get_edge_value(int x, int y){
   if(x < edges.size() && y < edges[x].size()){  
     if(edges[x][y])
-      return edges[x][y]->value;
+      return edges[x][y]->cost;
   }
   return 0;
 }
@@ -164,7 +166,7 @@ double Graph::get_edge_value(int x, int y){
 void Graph::set_edge_value(int x, int y, Edgenode *v){
   if(x < edges.size() && y < edges[x].size()){  
     if(edges[x][y] && v){
-      v->value = edges[x][y]->value;
+      v->cost = edges[x][y]->cost;
     }
   }
 }
@@ -181,7 +183,7 @@ void Graph::print(){
   for(int i = 0; i < edges.size(); ++i){
     for(int j = 0; j < edges.size(); ++j){
       if(edges[i][j])
-	cout << edges[i][j]->value << "\t";
+	cout << edges[i][j]->cost << "\t";
       else
 	cout << "x" << "\t";
     }
@@ -205,8 +207,8 @@ private:
 class ShortestPath{
 public:
   vector<int> vertices(Graph* g); // list of vertices in Graph G(V,E).  
-  vector<int>/*queue<int>*/ path(Graph* g, int u, int w); //path(G, u, w): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
-  double path_size(int u, int w); // path_size(u, w): return the path cost associated with the shortest path.
+  stack<int> path(Graph* g, int source, int target); //path(G, u, w): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
+  double path_size(Graph* g, int source, int target); // path_size(u, w): return the path cost associated with the shortest path.
 
 };
 
@@ -218,27 +220,28 @@ vector<int> ShortestPath::vertices(Graph* g){
   return vertices;
 }
 
-// path(u, w): find shortest path between u-w 
+// path(G, source, target): find shortest path between source-target 
 // and returns the sequence of vertices representing shorest path
-//  u-v1-v2-…-vn-w.
-//queue<int> ShortestPath::path(Graph* g, int source, int target){
-vector<int> ShortestPath::path(Graph* g, int source, int target){
+//  source-v1-v2-…-vn-target.
+stack<int> ShortestPath::path(Graph* g, int source, int target){
   // sortest path algorithm here
   
   // initialization
   typedef priority_queue< pair<int,double>, vector< pair<int,double> >, DistanceComparer> PriorityQueue;
 
-  PriorityQueue q(true); // reverse (faster first)
+  PriorityQueue q(kReverse); // reverse (faster first)
 
   vector<double> distances;
   vector<bool> visited;
   vector<int> previous;
 
+  // Initializations
   vector<int> graph_vertices = vertices(g);
   for(int i = 0; i < graph_vertices.size(); ++i){
-    distances.push_back(numeric_limits<double>::max()); // unknown distance from u to w
+    // set unknown distance (ie: infinity) from source to i
+    distances.push_back(numeric_limits<double>::max());
     visited.push_back(false); // nodes have not been visited
-    previous.push_back(-1); // previous node in optimal path "-1" <=> undifined
+    previous.push_back(kUndefined); // set previous node in optimal path to undifined
   }
 
   distances[source] = 0; // distance from source to source
@@ -263,7 +266,7 @@ vector<int> ShortestPath::path(Graph* g, int source, int target){
     vector<Edgenode*> neighbor = g->neighbors(current_vertex);
     for(int i = 0; i < neighbor.size(); ++i){
       if(neighbor[i]){
-	accumulate_distance = distances[current_vertex] + neighbor[i]->value;
+	accumulate_distance = distances[current_vertex] + neighbor[i]->cost;
 	if(accumulate_distance < distances[i] && !visited[i]){
 	  distances[i] = accumulate_distance;
 	  previous[i] = current_vertex;
@@ -273,20 +276,33 @@ vector<int> ShortestPath::path(Graph* g, int source, int target){
     }
   }
   // build path sequence
-  vector<int> sequence;
+  stack<int> sequence;
   current_vertex = target;
   while(previous[current_vertex] != -1){
-    sequence.push_back(current_vertex);
+    sequence.push(current_vertex);
     current_vertex = previous[current_vertex];
   }
-  sequence.push_back(current_vertex); // push that last element
+  sequence.push(current_vertex); // push that last element
 
   return sequence;
 }
 
  // path_size(u, w): return the path cost associated with the shortest path.
-double ShortestPath::path_size(int u, int w){
-  return 0;
+double ShortestPath::path_size(Graph* g, int source, int target){
+  stack<int> shortestpath = path(g, source, target);
+  double cost = 0;
+  int point_a = shortestpath.top();
+  shortestpath.pop();
+  int point_b;
+  while (!shortestpath.empty())
+  {
+    point_b = shortestpath.top();
+    shortestpath.pop();
+    cost += g->get_edge_value(point_a, point_b);
+
+    point_a = point_b;
+  }
+  return cost;
 }
 
 void test_graph_class(){
@@ -437,45 +453,60 @@ void test_shortest_path_class(){
   cout << endl;
 
   cout << "test shortest path" << endl;
-  vector<int> path = sp.path(g, 0, 3);
-  for(int i = path.size()-1; i >= 0; --i){
-    cout << path[i] << " ";
+  stack<int> path = sp.path(g, 0, 3);
+  while (!path.empty())
+  {
+    cout << path.top() << " ";
+    path.pop();
   }
+  cout << "cost: " << sp.path_size(g,0,3);
   cout << endl;
 
   cout << "test shortest path #2" << endl;
   Graph *g2 = new Graph(10,0.4);
   g2->print();
-  vector<int> path2 = sp.path(g2, 0, 9);
-  for(int i = path2.size()-1; i >= 0; --i){
-    cout << path2[i] << " ";
+  stack<int> path2 = sp.path(g2, 0, 9);
+  while (!path2.empty())
+  {
+    cout << path2.top() << " ";
+    path2.pop();
   }
+  cout << "cost: " << sp.path_size(g2,0,9);
   cout << endl;
 
   cout << "test shortest path #3" << endl;
   Graph *g3 = new Graph(50,0.2);
   
-  vector<int> path3 = sp.path(g3, 0, 9);
-  for(int i = path3.size()-1; i >= 0; --i){
-    cout << path3[i] << " ";
+  stack<int> path3 = sp.path(g3, 0, 9);
+  while (!path3.empty())
+  {
+    cout << path3.top() << " ";
+    path3.pop();
   }
-  cout << endl;
 
+  cout << "cost: " << sp.path_size(g3,0,9);
+  cout << endl;
 
   cout << "test shortest path #4" << endl;
   Graph *g4 = new Graph(50,0.4);
-  vector<int> path4 = sp.path(g4, 0, 9);
-  for(int i = path4.size()-1; i >= 0; --i){
-    cout << path4[i] << " ";
+  stack<int> path4 = sp.path(g4, 0, 9);
+  while (!path4.empty())
+  {
+    cout << path4.top() << " ";
+    path4.pop();
   }
+  cout << "cost: " << sp.path_size(g4,0,9);
   cout << endl;
 
   cout << "test shortest path #5" << endl;
   Graph *g5 = new Graph(50,0.2);
-  vector<int> path5 = sp.path(g5, 0, 49);
-  for(int i = path5.size()-1; i >= 0; --i){
-    cout << path5[i] << " ";
+  stack<int> path5 = sp.path(g5, 0, 49);
+  while (!path5.empty())
+  {
+    cout << path5.top() << " ";
+    path5.pop();
   }
+  cout << "cost: " << sp.path_size(g5,0,49); 
   cout << endl;
         
 }
