@@ -11,9 +11,10 @@ using namespace std;
 
 const bool kReverse = true; 
 const double kUndefined = -1; // use distance of -1 <=> undefined
+
 class Edgenode{//node
 public:
-  Edgenode(): cost(-1){ }
+  Edgenode(): cost(kUndefined){ }
   Edgenode(int v):cost(v){}
   double cost; // distance
 };
@@ -287,7 +288,7 @@ stack<int> ShortestPath::path(Graph* g, int source, int target){
   return sequence;
 }
 
- // path_size(u, w): return the path cost associated with the shortest path.
+// path_size(G, source, target): return the path cost associated with the shortest path.
 double ShortestPath::path_size(Graph* g, int source, int target){
   stack<int> shortestpath = path(g, source, target);
   double cost = 0;
@@ -300,7 +301,7 @@ double ShortestPath::path_size(Graph* g, int source, int target){
     shortestpath.pop();
     cost += g->get_edge_value(point_a, point_b);
 
-    point_a = point_b;
+    point_a = point_b; // 1 step
   }
   return cost;
 }
@@ -511,10 +512,50 @@ void test_shortest_path_class(){
         
 }
 
-int main(){
+void tests(){
   cout << "----------" << endl;
   test_graph_class();
   cout << "----------" << endl;
   test_shortest_path_class();
+}
+
+int main(){
+  //tests();
+  cout << "200 words of c++" << endl;
+
+  cout << "Average path of Graph with density 20%: ";
+  double avg_20_precent = 0;
+  double avg_40_precent = 0;
+
+  double test_population = 0;
+  double current_cost = 0;
+  ShortestPath sp;
+  stack<int> path;
+  
+  for(int i = 0; i < 10000; ++i){
+    Graph *g = new Graph(50, 0.2);
+    current_cost = sp.path_size(g, 0, 49);
+    if(current_cost != 0){
+      avg_20_precent += current_cost;
+      test_population++;
+    }
+  }
+  avg_20_precent = double(avg_20_precent)/test_population;
+  cout << avg_20_precent << endl;
+    
+  cout << "Average path of Graph with density 40%: ";
+  current_cost = 0;
+  test_population = 0;
+  for(int i = 0; i < 10000; ++i){
+    Graph *g = new Graph(50, 0.4);
+    current_cost = sp.path_size(g, 0, 49);
+    if(current_cost != 0){
+      avg_40_precent += current_cost;
+      test_population++;
+    }
+  }
+  avg_40_precent = double(avg_40_precent)/test_population;
+  cout << avg_40_precent << endl;;
+
   return 0;
 }
