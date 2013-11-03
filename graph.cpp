@@ -1,5 +1,5 @@
 // graph.cpp: Santiago Arias
-// Description: Graph algo
+// Description: Graph ATD and Dijkstra’s algorithm
 
 #include <iostream>
 #include <vector>
@@ -15,64 +15,78 @@ const double kDensity_20_percent = 0.2;
 const double kDensity_40_percent = 0.4;
 const int kNumber_nodes = 50; 
 const int kSampleSize = 10000;
+const int kRange_distance = 10;
 
-
+// simple data structure for Edge:
 class Edge{
 public:
   Edge(): cost(kUndefined){ }
-  Edge(int v):cost(v){}
+  Edge(const int v):cost(v){}
   double cost; // distance
 };
 
-/* Graph data structure:
-   sample usage:
-   Graph *g = new Graph(kNumber_nodes, kDensity_20_percent);
+// Graph data structure:
+//    sample usage:
+//    Graph *g = new Graph(kNumber_nodes, kDensity_20_percent);
+//    int number_vertices = g->V();
+//    int number_edges = g->E();
+//    bool isAdjacent = g->adjacent(0,9);
+//    vector<Edge*> neighbors = g->neighbors(0);
+//   
+//    g->add(0,1); // add edge in graph
+//    g->remove(0,1); // remove edge in graph
+//    double value = g->get_node_value(0); // get node value
+//    g->set_node_value(0,1); // set node value
+//    g3->get_edge_value(i,j); // get edge value
+//    Edge *edgeptr = g->get_edge(0,2);
+//    g->set_edge_value(1,3,edgeptr); // set edge value from another edge
+//
+//    Notes:
+//    Representation of the Graph is done by using a N x N matrix called 'edges'.
+//    Where the element edges[i,j] = x is an edge if (x > 0) and if x = 0 there is not edge.
+//    This allows rapid updates and access for edge read, insertion and deletion.
+//    It may have excessive space for graphs with many vertices and very few edges.
 
-   Notes:
-   Representation of the Graph is done by using a N x N matrix edges.
-   Where the element edges[i,j] = x is an edge if (x > 0) and if x = 0 there is not edge.
-   This allows rapid updates and access for edge read, insertion and deletion.
-   It may have excessive space for graphs with many vertices and very few edges.
-*/
 class Graph{
 public:
   Graph(): 
-    nvertices(0), nedges(0), edges(0, vector<Edge*>(0)), node_values(0,0){}
-  Graph(int number_nodes);
-  Graph(int nnodes, double density);
+    nvertices(0), nedges(0), edges(0, vector<Edge*>(0)), node_values(0,0), density_edge(1), range_distance(10){}
+  Graph(const int number_nodes);
+  Graph(const int nnodes, const double density_edge, const int range_dist);
 
   void initialize();
   int V(); // returns the number of vertices in the graph
   int E(); // returns the number of edges in the graph
-  bool adjacent(int x, int y); // tests whether there is an edge from node x to node y.
-  vector<Edge*> neighbors(int y); // lists all nodes y such that there is an edge from x to y.
+  bool adjacent(const int x, const int y); // tests whether there is an edge from node x to node y.
+  vector<Edge*> neighbors(const int x); // lists all nodes y such that there is an edge from x to y.
   
-  void add(int x, int y); // adds to G the edge from x to y, if it is not there.
-  void remove(int x, int y); // removes the edge from x to y, if it is there.
-  int get_node_value(int x); // returns the value associated with the node x.
-  void set_node_value(int x, int a); // sets the value associated with the node x to a.
-  double get_edge_value(int x, int y); // returns the value associated to the edge (x,y).
-  void set_edge_value(int x, int y, Edge *v); // sets the value associated to the edge (x,y) to v.
-  Edge* get_edge_node(int x, int y);
-  void print();
+  void add(const int x, const int y); // adds to G the edge from x to y, if it is not there.
+  void remove(const int x, const int y); // removes the edge from x to y, if it is there.
+  int get_node_value(const int x); // returns the value associated with the node x.
+  void set_node_value(const int x, const int a); // sets the value associated with the node x to a.
+  double get_edge_value(const int x, const int y); // returns the value associated to the edge (x,y).
+  void set_edge_value(const int x, const int y, Edge *v); // sets the value associated to the edge (x,y) to v.
+  Edge* get_edge(const int x, const int y);
+  void print(); // prints adjacency matrix
 
 private:
   int nvertices; // number of vertices
   int nedges; // number of edges
   vector< vector<Edge*> > edges; // adjacency information
   vector< int> node_values; // vector of nodes values (not needed for now..)
-  double density; // density parameter used at graph creation.
+  double density_edge; // density parameter used at graph creation for density of edges.
+  int range_distance; // range of distance between two vertex
 };
 
 // Graph constructor:
 // This constructor an empty graph that you can then create by hand.
-Graph::Graph(int number_vertices):
-  nedges(0), nvertices(number_vertices), edges(number_vertices, vector<Edge*>(number_vertices)), node_values(number_vertices, 0){}
+Graph::Graph(const int number_vertices):
+  nedges(0), nvertices(number_vertices), edges(number_vertices, vector<Edge*>(number_vertices)), node_values(number_vertices, 0), density_edge(0), range_distance(0){}
 
 // Graph constructor:
 // This is the main constructor, pass a density parameter to create a random graph.
-Graph::Graph(int number_vertices, double dense):
-  nedges(0), nvertices(number_vertices), edges(number_vertices, vector<Edge*>(number_vertices)), node_values(number_vertices, 0), density(dense){
+Graph::Graph(const int number_vertices, const double dense_edge, const int range_dist):
+  nedges(0), nvertices(number_vertices), edges(number_vertices, vector<Edge*>(number_vertices)), node_values(number_vertices, 0), density_edge(dense_edge), range_distance(range_dist){
 
   // Initialize random seed
   srand(time(NULL));
@@ -85,9 +99,10 @@ Graph::Graph(int number_vertices, double dense):
       if(i == j){
   	edges[i][j] = NULL; // null pointer:  no loops in Graph
       } else {
-	if( ((double) rand() / (RAND_MAX)) < density){
-	  // generate random number between 1 and 10
-	  random_distance = rand() %10 + 1;
+	// manage density in graph
+	if( ((double) rand() / (RAND_MAX)) < density_edge){
+	  // generate random number between 1 and range_distance
+	  random_distance = rand() %range_distance + 1;
 	  edges[i][j] = new Edge(random_distance);
 	  edges[j][i] = edges[i][j]; // undirected graph, connect both vertex
 	  nedges++;
@@ -97,8 +112,7 @@ Graph::Graph(int number_vertices, double dense):
   }
 }
 
-// initialize sample graph
-// initialize graph with distances of edges at 1
+// initialize sample graph (with distances of edges at 1 and fully connected)
 void Graph::initialize(){
   for(int i = 0; i < edges.size(); ++i){
     node_values[i] = 1;
@@ -126,7 +140,7 @@ int Graph::E(){
 }
 
 // tests whether there is an edge from node x to node y.
-bool Graph::adjacent(int x, int y){
+bool Graph::adjacent(const int x, const int y){
   if(x < edges.size() && y < edges[x].size()){
     if(edges[x][y] != NULL)
       return true;
@@ -135,7 +149,7 @@ bool Graph::adjacent(int x, int y){
 }
 
 // lists all nodes y such that there is an edge from x to y.
-vector<Edge*> Graph::neighbors(int x){
+vector<Edge*> Graph::neighbors(const int x){
   if(x < edges.size()){
     return edges[x];
   }
@@ -143,7 +157,7 @@ vector<Edge*> Graph::neighbors(int x){
 }
 
 // adds to G the edge from x to y, if it is not there.
-void Graph::add(int x, int y){
+void Graph::add(const int x, const int y){
   if(x < edges.size() && y < edges[x].size()){
     if(edges[x][y] == NULL){
       edges[x][y] = new Edge(1);
@@ -154,7 +168,7 @@ void Graph::add(int x, int y){
 }
 
 // removes the edge from x to y, if it is there.
-void Graph::remove(int x, int y){
+void Graph::remove(const int x, const int y){
   if(x < edges.size() && y < edges[x].size()){
     if(edges[x][y]){
       edges[x][y] = NULL;
@@ -165,21 +179,21 @@ void Graph::remove(int x, int y){
 }
 
 // returns the value associated with the node x.
-int Graph::get_node_value(int x){
+int Graph::get_node_value(const int x){
   if(0 <= x < node_values.size())
     return node_values[x];
   return 0;
 }
 
 // sets the value associated with the node x to a.
-void Graph::set_node_value(int x, int a){
+void Graph::set_node_value(const int x, const int a){
   if(0 <= x <= node_values.size() &&
      0 <= a <= node_values.size())
     node_values[a]= node_values[x];
 }
 
 // returns the value associated to the edge (x,y).
-double Graph::get_edge_value(int x, int y){
+double Graph::get_edge_value(const int x, const int y){
   if(x < edges.size() && y < edges[x].size()){  
     if(edges[x][y])
       return edges[x][y]->cost;
@@ -188,7 +202,7 @@ double Graph::get_edge_value(int x, int y){
 }
 
 // sets the value associated to the edge (x,y) to v.
-void Graph::set_edge_value(int x, int y, Edge *v){
+void Graph::set_edge_value(const int x, const int y, Edge *v){
   if(x < edges.size() && y < edges[x].size()){  
     if(edges[x][y] && v){
       v->cost = edges[x][y]->cost;
@@ -197,13 +211,14 @@ void Graph::set_edge_value(int x, int y, Edge *v){
 }
 
 // gets a pointer to the edge associated to (x,y)
-Edge* Graph::get_edge_node(int x, int y){
+Edge* Graph::get_edge(const int x, const int y){
   if(x < edges.size() && y < edges[x].size()){  
     return edges[x][y];
   }
   return NULL;
 }
 
+// print adjacency matrix
 void Graph::print(){
   for(int i = 0; i < edges.size(); ++i){
     for(int j = 0; j < edges.size(); ++j){
@@ -216,6 +231,10 @@ void Graph::print(){
   }
 }
 
+// Manages the comparison in the the priority queue. 
+// The pair pair<int, double> is composed of an index and a distance.
+// By default we set 'reverse' parameter to true in order to have the faster (lowest) 
+// accesible vertex on top.
 class DistanceComparer{
 public:
   DistanceComparer(const bool & reverse_param = true): reverse(reverse_param){}
@@ -225,19 +244,31 @@ public:
     return (left_hand_side.second < right_hand_side.second);
   }
 private:
-  bool reverse;
-  
+  bool reverse;  
 };
 
+// Implements the Dijkstra's algorithm by calling the 'path' method.
+// If you want the cost of the shortest path between to points use 'path_size' instead
+//
+// sample usage:
+//
+// ShortestPath sp;
+// Graph *g = new Graph(kNumber_nodes, kDensity_20_percent, 10);
+// stack<int> shortestpath = path(g, source, target);
+//
+// or
+//
+// ShortestPath sp;
+// Graph *g = new Graph(kNumber_nodes, kDensity_20_percent, 10);
+// double cost = sp.path_size(g, 0, 49);
 class ShortestPath{
 public:
-  vector<int> vertices(Graph* g); // list of vertices in Graph G(V,E).  
-  stack<int> path(Graph* g, int source, int target); //path(G, u, w): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
-  double path_size(Graph* g, int source, int target); // path_size(u, w): return the path cost associated with the shortest path.
-
+  vector<int> vertices(Graph* g); // list of vertices in Graph G.  
+  stack<int> path(Graph* g, const int source, const int target); //path(G, source, target): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
+  double path_size(Graph* g, const int source, const int target); // path_size(source, targety): return the path cost associated with the shortest path.
 };
 
-// list of vertices in Graph G(V,E).
+// list of vertices in Graph G.
 vector<int> ShortestPath::vertices(Graph* g){
   vector<int> vertices;
   for(int i = 0; i < g->V(); ++i)
@@ -248,7 +279,7 @@ vector<int> ShortestPath::vertices(Graph* g){
 // path(G, source, target): find shortest path between source-target 
 // and returns the sequence of vertices representing shorest path
 //  source-v1-v2-…-vn-target.
-stack<int> ShortestPath::path(Graph* g, int source, int target){
+stack<int> ShortestPath::path(Graph* g, const int source, const int target){
   // sortest path algorithm here
   
   // initialization
@@ -303,7 +334,7 @@ stack<int> ShortestPath::path(Graph* g, int source, int target){
   // build path sequence
   stack<int> sequence;
   current_vertex = target;
-  while(previous[current_vertex] != -1){
+  while(previous[current_vertex] != kUndefined){
     sequence.push(current_vertex);
     current_vertex = previous[current_vertex];
   }
@@ -313,8 +344,12 @@ stack<int> ShortestPath::path(Graph* g, int source, int target){
 }
 
 // path_size(G, source, target): return the path cost associated with the shortest path.
-double ShortestPath::path_size(Graph* g, int source, int target){
+double ShortestPath::path_size(Graph* g, const int source, const int target){
+
+  // get the shortest path
   stack<int> shortestpath = path(g, source, target);
+
+  // compute the cost by going through all vertices in the path.
   double cost = 0;
   int point_a = shortestpath.top();
   shortestpath.pop();
@@ -325,8 +360,9 @@ double ShortestPath::path_size(Graph* g, int source, int target){
     shortestpath.pop();
     cost += g->get_edge_value(point_a, point_b);
 
-    point_a = point_b; // 1 step
+    point_a = point_b; // one step
   }
+
   return cost;
 }
 
@@ -430,10 +466,10 @@ void test_graph_class(){
   cout << endl;
 
   cout << "test set_edge_value method" << endl;
-  Edge *edgenodeptr = g3.get_edge_node(0,2);
+  Edge *edgeptr = g3.get_edge(0,2);
   cout << "(0,1) : "<< g3.get_edge_value(0,2) << endl;
   cout << "(0,2) : "<< g3.get_edge_value(1,3) << endl;
-  g3.set_edge_value(1,3,edgenodeptr);
+  g3.set_edge_value(1,3,edgeptr);
   cout << "(0,1) : "<< g3.get_edge_value(0,2) << endl;
   cout << "(0,2) : "<< g3.get_edge_value(1,3) << endl;
 
@@ -441,13 +477,13 @@ void test_graph_class(){
 
   cout << "test Graph with density" << endl;
   cout << endl << "density of 10%" <<endl;
-  Graph g4(10,0.1);
+  Graph g4(10,0.1, 10);
   g4.print();
   cout << endl << "density of 20%" <<endl;
-  Graph g5(10,0.2);
+  Graph g5(10,0.2, 10);
   g5.print();
   cout << endl << "density of 40%" <<endl;
-  Graph g6(10,0.4);
+  Graph g6(10,0.4, 10);
   g5.print();
 }
 
@@ -488,7 +524,7 @@ void test_shortest_path_class(){
   cout << endl;
 
   cout << "test shortest path #2" << endl;
-  Graph *g2 = new Graph(10,0.4);
+  Graph *g2 = new Graph(10,0.4, 10);
   g2->print();
   stack<int> path2 = sp.path(g2, 0, 9);
   while (!path2.empty())
@@ -500,7 +536,7 @@ void test_shortest_path_class(){
   cout << endl;
 
   cout << "test shortest path #3" << endl;
-  Graph *g3 = new Graph(kNumber_nodes,0.2);
+  Graph *g3 = new Graph(kNumber_nodes,0.2, 10);
   
   stack<int> path3 = sp.path(g3, 0, 9);
   while (!path3.empty())
@@ -513,7 +549,7 @@ void test_shortest_path_class(){
   cout << endl;
 
   cout << "test shortest path #4" << endl;
-  Graph *g4 = new Graph(kNumber_nodes,0.4);
+  Graph *g4 = new Graph(kNumber_nodes,0.4, 10);
   stack<int> path4 = sp.path(g4, 0, 9);
   while (!path4.empty())
   {
@@ -524,7 +560,7 @@ void test_shortest_path_class(){
   cout << endl;
 
   cout << "test shortest path #5" << endl;
-  Graph *g5 = new Graph(kNumber_nodes,0.2);
+  Graph *g5 = new Graph(kNumber_nodes,0.2, 10);
   stack<int> path5 = sp.path(g5, 0, 49);
   while (!path5.empty())
   {
@@ -544,7 +580,6 @@ void tests(){
 }
 
 int main(){
-  //tests();
   cout << "200 words of c++" << endl;
 
   cout << "Average path of Graph with density 20%: ";
@@ -557,7 +592,7 @@ int main(){
   stack<int> path;
   
   for(int i = 0; i < kSampleSize; ++i){
-    Graph *g = new Graph(kNumber_nodes, kDensity_20_percent);
+    Graph *g = new Graph(kNumber_nodes, kDensity_20_percent, 10);
     current_cost = sp.path_size(g, 0, 49);
     if(current_cost != 0){
       avg_20_precent += current_cost;
@@ -571,7 +606,7 @@ int main(){
   current_cost = 0;
   test_population = 0;
   for(int i = 0; i < kSampleSize; ++i){
-    Graph *g = new Graph(kNumber_nodes, kDensity_40_percent);
+    Graph *g = new Graph(kNumber_nodes, kDensity_40_percent, 10);
     current_cost = sp.path_size(g, 0, 49);
     if(current_cost != 0){
       avg_40_precent += current_cost;
