@@ -4,7 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <time.h>
-
+#include <limits> // std::numeric_limits
+#include <queue>
 using namespace std;
 
 
@@ -189,11 +190,25 @@ void Graph::print(){
   }
 }
 
+class DistanceComparer{
+public:
+  DistanceComparer(const bool & reverse_param = true): reverse(reverse_param){}
+  bool operator() (const pair<int,double> left_hand_side, const pair<int,double> right_hand_side){
+    if(reverse)
+      return (left_hand_side.second > right_hand_side.second);
+    return (left_hand_side.second < right_hand_side.second);
+  }
+private:
+  bool reverse;
+  
+};
+
 class ShortestPath{
 public:
   vector<int> vertices(Graph* g); // list of vertices in Graph G(V,E).  
-  vector<int> path(int u, int w); //path(u, w): find shortest path between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
-  double path_size(u, w); // path_size(u, w): return the path cost associated with the shortest path.
+  queue<int> path(Graph* g, int u, int w); //path(G, u, w): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
+  double path_size(int u, int w); // path_size(u, w): return the path cost associated with the shortest path.
+
 };
 
 // list of vertices in Graph G(V,E).
@@ -207,10 +222,64 @@ vector<int> ShortestPath::vertices(Graph* g){
 // path(u, w): find shortest path between u-w 
 // and returns the sequence of vertices representing shorest path
 //  u-v1-v2-…-vn-w.
-vector<int> ShortestPath::path(int u, int w){
-  vector<int> sequence;
-  sequence.push_back(u);
-  // sortest path here
+queue<int> ShortestPath::path(Graph* g, int source, int target){
+  // sortest path algorithm here
+  
+  // initialization
+  typedef priority_queue< pair<int,double>, vector< pair<int,double> >, DistanceComparer> PriorityQueue;
+
+  PriorityQueue q(true); // reverse (faster first)
+
+  vector<double> distances;
+  vector<bool> visited;
+  vector<int> previous;
+  
+  vector<int> graph_vertices = vertices(g);
+  for(int i = 0; i < graph_vertices.size(); ++i){
+    distances.push_back(numeric_limits<double>::max()); // unknown distance from u to w
+    visited.push_back(false); // nodes have not been visited
+    previous.push_back(-1); // previous node in optimal path "-1" <=> undifined
+  }
+  
+  distances[source] = 0; // distance from source to source
+  q.push(make_pair(source, distances[source])); // start with the source node
+
+  int current_vertex;
+  while( !q.empty()){
+    // vertex in Q with smallest distance and that has not yet neen visited
+    current_vertex = q.top().first;
+    q.pop();
+    if(!visited[current_vertex]){
+      continue;
+    }
+    if(current_vertex == target){
+      // shortes path found!
+      break;
+    }
+    visited[current_vertex] = true; // mark node as visited
+    
+    // for each neighbor v of current_vertex
+    double accumulate_distance = 0;
+    vector<Edgenode*> neighbor = g->neighbors(current_vertex);
+    for(int i = 0; i < neighbor.size(); ++i){
+      if(neighbor[i]){
+	accumulate_distance = distances[current_vertex] + neighbor[i]->value;
+	if(accumulate_distance < distances[i] && !visited[i]){
+	  distances[i] = accumulate_distance;
+	  previous[i] = current_vertex;
+	  q.push(make_pair(i, distances[i]));
+	}
+      }
+    }
+  }
+  
+  // build path sequence
+  queue<int> sequence;
+  current_vertex = target;
+  while(previous[current_vertex] != -1){
+    sequence.push(current_vertex);
+    current_vertex = previous[current_vertex];
+  }
   return sequence;
 }
 
