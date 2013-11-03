@@ -1,5 +1,6 @@
 // graph.cpp: Santiago Arias
-// Description: Graph ATD
+// Description: HW2
+// to compile this do: 'g++ graph.cpp shortest_path.cpp main.cpp'
 
 #include <iostream> // std::cout, std::endl
 #include <vector>
@@ -14,9 +15,11 @@ const int kSampleSize = 10000; // sample size to compute average of cost path
 int main(){
   cout << "200 words of c++" << endl;
 
+  // build 10000 random graphs with 50 nodes and 20% density
+  // compute the cost of the path 1 to 49
+  // compute the average
   cout << "Average path of Graph with density 20%: ";
   double avg_20_precent(0);
-  double avg_40_precent(0);
 
   double test_population(0);
   double current_cost(0);
@@ -33,7 +36,11 @@ int main(){
   }
   avg_20_precent = double(avg_20_precent)/test_population;
   cout << avg_20_precent << endl;
-    
+
+  // build 10000 random graphs with 50 nodes and 40% density
+  // compute the cost of the path 1 to 49
+  // compute the average    
+  double avg_40_precent(0);
   cout << "Average path of Graph with density 40%: ";
   current_cost = 0;
   test_population = 0;
