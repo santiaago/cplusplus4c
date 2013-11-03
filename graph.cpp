@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <vector>
-#include <time.h>
 #include <limits> // std::numeric_limits
 #include <queue>
 using namespace std;
@@ -182,9 +181,9 @@ void Graph::print(){
   for(int i = 0; i < edges.size(); ++i){
     for(int j = 0; j < edges.size(); ++j){
       if(edges[i][j])
-	cout << edges[i][j]->value << " ";
+	cout << edges[i][j]->value << "\t";
       else
-	cout << "x" << " ";
+	cout << "x" << "\t";
     }
     cout << endl;
   }
@@ -206,7 +205,7 @@ private:
 class ShortestPath{
 public:
   vector<int> vertices(Graph* g); // list of vertices in Graph G(V,E).  
-  queue<int> path(Graph* g, int u, int w); //path(G, u, w): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
+  vector<int>/*queue<int>*/ path(Graph* g, int u, int w); //path(G, u, w): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
   double path_size(int u, int w); // path_size(u, w): return the path cost associated with the shortest path.
 
 };
@@ -222,7 +221,8 @@ vector<int> ShortestPath::vertices(Graph* g){
 // path(u, w): find shortest path between u-w 
 // and returns the sequence of vertices representing shorest path
 //  u-v1-v2-…-vn-w.
-queue<int> ShortestPath::path(Graph* g, int source, int target){
+//queue<int> ShortestPath::path(Graph* g, int source, int target){
+vector<int> ShortestPath::path(Graph* g, int source, int target){
   // sortest path algorithm here
   
   // initialization
@@ -233,14 +233,14 @@ queue<int> ShortestPath::path(Graph* g, int source, int target){
   vector<double> distances;
   vector<bool> visited;
   vector<int> previous;
-  
+
   vector<int> graph_vertices = vertices(g);
   for(int i = 0; i < graph_vertices.size(); ++i){
     distances.push_back(numeric_limits<double>::max()); // unknown distance from u to w
     visited.push_back(false); // nodes have not been visited
     previous.push_back(-1); // previous node in optimal path "-1" <=> undifined
   }
-  
+
   distances[source] = 0; // distance from source to source
   q.push(make_pair(source, distances[source])); // start with the source node
 
@@ -249,7 +249,7 @@ queue<int> ShortestPath::path(Graph* g, int source, int target){
     // vertex in Q with smallest distance and that has not yet neen visited
     current_vertex = q.top().first;
     q.pop();
-    if(!visited[current_vertex]){
+    if(visited[current_vertex]){
       continue;
     }
     if(current_vertex == target){
@@ -272,14 +272,15 @@ queue<int> ShortestPath::path(Graph* g, int source, int target){
       }
     }
   }
-  
   // build path sequence
-  queue<int> sequence;
+  vector<int> sequence;
   current_vertex = target;
   while(previous[current_vertex] != -1){
-    sequence.push(current_vertex);
+    sequence.push_back(current_vertex);
     current_vertex = previous[current_vertex];
   }
+  sequence.push_back(current_vertex); // push that last element
+
   return sequence;
 }
 
@@ -288,7 +289,7 @@ double ShortestPath::path_size(int u, int w){
   return 0;
 }
 
-void test_graph(){
+void test_graph_class(){
   cout << "test default constructor" << endl;
   Graph g1;
   g1.print();
@@ -409,7 +410,80 @@ void test_graph(){
   g5.print();
 }
 
+Graph* test_init_graph(){
+  Graph *g = new Graph(4);
+  g->add(0,1);
+  g->add(0,2);
+  g->add(1,3);
+  g->add(2,3);
+  return g;
+}
+
+
+void test_shortest_path_class(){
+  cout << "test_shortest_path_class" << endl;
+
+  cout << "initialize graph" << endl;
+  ShortestPath sp;
+  Graph *g = test_init_graph();
+  g->print();
+  cout << endl;
+
+  cout << "testing vertices" << endl;
+  vector<int> graph_vertices = sp.vertices(g);
+  for(int i = 0; i < graph_vertices.size(); ++i){
+    cout << i << " ";
+  }
+  cout << endl;
+
+  cout << "test shortest path" << endl;
+  vector<int> path = sp.path(g, 0, 3);
+  for(int i = path.size()-1; i >= 0; --i){
+    cout << path[i] << " ";
+  }
+  cout << endl;
+
+  cout << "test shortest path #2" << endl;
+  Graph *g2 = new Graph(10,0.4);
+  g2->print();
+  vector<int> path2 = sp.path(g2, 0, 9);
+  for(int i = path2.size()-1; i >= 0; --i){
+    cout << path2[i] << " ";
+  }
+  cout << endl;
+
+  cout << "test shortest path #3" << endl;
+  Graph *g3 = new Graph(50,0.2);
+  
+  vector<int> path3 = sp.path(g3, 0, 9);
+  for(int i = path3.size()-1; i >= 0; --i){
+    cout << path3[i] << " ";
+  }
+  cout << endl;
+
+
+  cout << "test shortest path #4" << endl;
+  Graph *g4 = new Graph(50,0.4);
+  vector<int> path4 = sp.path(g4, 0, 9);
+  for(int i = path4.size()-1; i >= 0; --i){
+    cout << path4[i] << " ";
+  }
+  cout << endl;
+
+  cout << "test shortest path #5" << endl;
+  Graph *g5 = new Graph(50,0.2);
+  vector<int> path5 = sp.path(g5, 0, 49);
+  for(int i = path5.size()-1; i >= 0; --i){
+    cout << path5[i] << " ";
+  }
+  cout << endl;
+        
+}
+
 int main(){
-  test_graph();
+  cout << "----------" << endl;
+  test_graph_class();
+  cout << "----------" << endl;
+  test_shortest_path_class();
   return 0;
 }
