@@ -99,5 +99,29 @@ double ShortestPath::path_size(Graph* g, const int source, const int target){
     point_a = point_b; // one step
   }
 
+  // Prim
+  void ShortestPath::prim(Graph*g){
+    cout << "Prim algorithm" << endl;
+    // build edges array:
+    
+    int min_distance = max();
+    int arg_min_distance = 0;
+    double current_value = 0;
+    for(int i = 0; i < g->V(); i++){
+      min_distance = max();
+      for(int j = 0; j < g->V(); j++){
+	current_value = g->get_edge_value(i, j);
+	if((current_value != 0) && current_value < min_distance){
+	  min_distance = current_value;
+	  arg_min_distance = j;
+	}
+	edges.push_back(arg_min_distance);
+      }
+    }
+    cout << "edges array: " << endl;
+    for(int i = 0; i < edges.size(); i++){
+      cout << "vertex: " << i << "closest vertex: " << edges[i] << endl;
+    }
+  }
   return cost;
 }

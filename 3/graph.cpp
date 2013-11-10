@@ -40,6 +40,9 @@ Graph::Graph(const int number_vertices):
   nedges(0), nvertices(number_vertices), edges(number_vertices, vector<Edge*>(number_vertices)), node_values(number_vertices, 0), density_edge(0), range_distance(0){}
 
 // Graph constructor:
+// Read in a graph from file.
+// The file format will be an initial integer that is the node size of the graph 
+// and the further values will be integer triples: (i, j, cost). 
 Graph::Graph(const string file_name):nedges(0), density_edge(0), range_distance(0){
 
   ifstream file(file_name);
