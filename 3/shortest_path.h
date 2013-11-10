@@ -45,11 +45,11 @@ public:
   vector<int> vertices(Graph* g); // list of vertices in Graph G.  
   stack<int> path(Graph* g, const int source, const int target); //path(G, source, target): find shortest path in graph g between u-w and returns the sequence of vertices representing shorest path u-v1-v2-…-vn-w.
   double path_size(Graph* g, const int source, const int target); // path_size(source, targety): return the path cost associated with the shortest path.
-  void prim();
+  void prim(Graph* g);
  private:
   // For prim algorithm
   // for a given vertex, which vertex int the tree it is closest to.
-  vector<int> edges
+  vector<int> edges;
 };
 
 #endif // SHORTEST_PATH_H

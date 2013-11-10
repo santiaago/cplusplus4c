@@ -70,5 +70,6 @@ int main(){
   cout << "HW 3" << endl;
   Graph *g = new Graph("sample_data");
   g->print();
-
+  ShortestPath sp;
+  sp.prim(g);
 }
