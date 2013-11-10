@@ -2,9 +2,7 @@
 // Description: HW2
 // to compile this do: 'g++ graph.cpp shortest_path.cpp main.cpp'
 
-#include <iostream> // std::cout, std::endl
-#include <vector>
-#include <queue>
+#include <iostream>
 #include <stack>
 
 #include "graph.h"

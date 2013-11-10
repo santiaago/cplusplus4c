@@ -1,11 +1,6 @@
 // shortest_path.cpp: Santiago Arias
 // Description: Dijkstra’s algorithm
 
-#include <iostream> // std::cout, std::endl
-#include <vector>
-#include <queue>
-#include <stack>
-
 #include "graph.h"
 #include "shortest_path.h"
 

@@ -2,6 +2,11 @@
 
 #define GRAPH_H
 
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <stack>
+
 using namespace std;
 
 const double kUndefined = -1; // use distance of -1 <=> undefined

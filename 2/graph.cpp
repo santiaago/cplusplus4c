@@ -1,11 +1,6 @@
 // graph.cpp: Santiago Arias
 // Description: Graph ATD
 
-#include <iostream> // std::cout, std::endl
-#include <vector>
-#include <queue>
-#include <stack>
-
 #include "graph.h"
 
 // Graph constructor:
