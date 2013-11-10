@@ -59,6 +59,7 @@
 // --------------------------------------------------
 
 #include <iostream>
+#include <fstream>
 
 #include "graph.h"
 #include "shortest_path.h"
@@ -67,4 +68,42 @@ using namespace std;
 
 int main(){
   cout << "hello world" << endl;
+  ifstream file("sample_data");
+  if(file.is_open()){
+    string line;
+    string rest;
+
+    int number_of_lines = 0;
+    int node_size_of_graph = 0;
+    
+    int i;
+    int j;
+    int cost;
+
+    int current_cursor = 0;
+    int next_space = 0;
+    while(getline(file, line)){// && number_of_lines < 10){
+      cout << line << endl;
+      if(number_of_lines == 0){
+	node_size_of_graph = atoi(line.c_str());
+	cout << node_size_of_graph << endl;
+      } else {
+	next_space = line.find(' ');
+	i = atoi(line.substr(0, next_space).c_str());
+	rest = line.substr(next_space + 1,  string::npos);
+	//cout << "rest: " << rest << endl;
+	next_space = rest.find(' ');
+
+	j = atoi(rest.substr(0, next_space).c_str());
+
+	rest = rest.substr(next_space + 1, string::npos);
+	next_space = rest.find(' ');
+
+	cost  = atoi(rest.substr(0, next_space).c_str());
+	cout << i << " " << j << " " << cost << endl;
+      }
+      number_of_lines++;
+    }
+    file.close();
+  }
 }
