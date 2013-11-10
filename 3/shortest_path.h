@@ -2,6 +2,12 @@
 
 #define SHORTEST_PATH_H
 
+#include <iostream> // std::cout, std::endl
+#include <vector>
+#include <queue>
+#include <stack>
+#include <limits>
+
 const bool kReverse = true; // defines the order of the priority queue. true = fast
 
 // Manages the comparison in the the priority queue. 
