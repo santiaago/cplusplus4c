@@ -1,8 +1,10 @@
 // shortest_path.cpp: Santiago Arias
-// Description: Dijkstra’s algorithm
+// Description: Dijkstra’s algorithm and Prim algorithm
 
 #include "graph.h"
 #include "shortest_path.h"
+
+#include <algorithm>    // std::find
 
 // list of vertices in Graph G.
 vector<int> ShortestPath::vertices(Graph* g){
@@ -101,27 +103,74 @@ double ShortestPath::path_size(Graph* g, const int source, const int target){
   return cost;
 }
 
-// Prim
+// the Prim algorithm
 void ShortestPath::prim(Graph*g){
-  cout << "Prim algorithm" << endl;
-  // build edges array:
-    
-  double min_distance;
-  int arg_min_distance = 0;
-  double current_value = 0;
+
+  // array of distances from source to each vertex
+  // set every distance to infinity until we discover way to link a vertex to a spanning tree
+  vector<double>dist(g->V()-1, numeric_limits<double>::max()); 
+
+  // array indicating for a given vertex, which vertex in the tree it is closest to.
+  // set every edge to undefined until we discover way to link a vertex to a spanning tree
+  vector<int> edges(g->V()-1, kUndefined); 
+
+  // vector of finished vertices.
+  vector<int> mst;
+
+  // vector of unfinished vertices. 
+  vector<int> U; 
   for(int i = 0; i < g->V(); i++){
-    min_distance = numeric_limits<double>::max();
-    for(int j = 0; j < g->V(); j++){
-      current_value = g->get_edge_value(i, j);
-      if((current_value != 0) && current_value < min_distance){
-	min_distance = current_value;
-	arg_min_distance = j;
+    U.push_back(i);
+  }
+  // cost
+  double cost(0);
+  // pick a vertex s:
+  int s = 0;
+  dist[s] = 0;
+  mst.push_back(s);
+  while(mst.size() != g->V()){ // mst is missing a vertex
+
+    // pick the vertex v in U with the shortest edge to the group of vertices in the MST
+    int v;
+    double current_distance;
+    double min_distance = numeric_limits<double>::max();
+    
+    double shortest_edge = numeric_limits<double>::max();
+    for(int i = 0; i < U.size(); i++){
+      for(int j = 0; j < U.size(); j++){
+	if((find(mst.begin(), mst.end(), U[i]) == mst.end()) &&
+	   (find(mst.begin(), mst.end(), U[j]) != mst.end())){
+	  current_distance = g->get_edge_value(U[i], U[j]);
+	  if( (current_distance != 0) && current_distance < min_distance){
+	    min_distance = current_distance;
+	    v = U[i];
+	  }
+	}
       }
     }
-    edges.push_back(arg_min_distance);
+
+    // v is now the vertex with the shortest edge to the group of vertices in the MST.
+    // we add now v to mst.
+    cost += min_distance;
+    mst.push_back(v);
+    vector<Edge*> neighbors = g->neighbors(v);
+    // loop through every neighbor in v
+    // check to see if that neighbor could reach the MST faster through v
+    // than by linking through previous vertex.
+    for(int i = 0; i < neighbors.size(); i++){
+      if(neighbors[i] != NULL){
+	if(neighbors[i]->cost < dist[i]){
+	  dist[i] = neighbors[i]->cost;
+	  edges[i] = v;
+	}
+      }
+    }
   }
-  cout << "edges array: " << endl;
-  for(int i = 0; i < edges.size(); i++){
-    cout << "vertex: " << i << " closest vertex: " << edges[i] << endl;
+  // output edges and cost
+  cout << "MST: ";
+  for(int i = 0 ; i < mst.size(); i++){
+    cout << mst[i] << " " ;
   }
+  cout << endl;
+  cout << "cost: " << cost << endl;
 }

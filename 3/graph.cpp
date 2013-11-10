@@ -68,7 +68,7 @@ Graph::Graph(const string file_name):nedges(0), density_edge(0), range_distance(
 
 	// build current edge
 	edges[i][j] = new Edge(cost);
-	edges[j][i] = new Edge(cost);
+	edges[j][i] = new Edge(cost); // undirected graph
       }
       number_of_lines++;
     }

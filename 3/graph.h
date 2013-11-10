@@ -51,7 +51,7 @@ public:
     nvertices(0), nedges(0), edges(0, vector<Edge*>(0)), node_values(0,0), density_edge(1), range_distance(10){}
   Graph(const int number_nodes);
   Graph(const int nnodes, const double density_edge, const int range_dist);
-  Graph(const string file_name);
+  Graph(const string file_name); // build a graph from file
   void initialize();
   int V(); // returns the number of vertices in the graph
   int E(); // returns the number of edges in the graph
@@ -75,6 +75,6 @@ private:
   double density_edge; // density parameter used at graph creation for density of edges.
   int range_distance; // range of distance between two vertex
 
-  void extract_edge_info(string line, int &i, int& j, int &cost);
+  void extract_edge_info(string line, int &i, int& j, int &cost); // read line with format (i, j, cost) and set values into i, j, cost passed as ref.
 };
 #endif // GRAPH_H
