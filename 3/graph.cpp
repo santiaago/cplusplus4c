@@ -3,6 +3,8 @@
 
 #include "graph.h"
 
+#include <fstream>
+
 // Graph constructor:
 // This is the main constructor, pass a density parameter to create a random graph.
 Graph::Graph(const int number_vertices, const double dense_edge, const int range_dist):
@@ -37,6 +39,71 @@ Graph::Graph(const int number_vertices, const double dense_edge, const int range
 Graph::Graph(const int number_vertices):
   nedges(0), nvertices(number_vertices), edges(number_vertices, vector<Edge*>(number_vertices)), node_values(number_vertices, 0), density_edge(0), range_distance(0){}
 
+// Graph constructor:
+Graph::Graph(const string file_name):nedges(0), density_edge(0), range_distance(0){
+
+  ifstream file(file_name);
+
+  if(file.is_open()){
+
+    int read_number_vertices(0);
+    int number_of_lines(0);
+    int i, j, cost;
+
+    string line, rest;
+    int next_space = 0;
+
+    while(getline(file, line)){
+      if(number_of_lines == 0){
+        read_number_vertices = atoi(line.c_str());
+	// init Graph variables:
+	nvertices = read_number_vertices;
+	edges = vector< vector<Edge*> >(nvertices, vector<Edge*>(nvertices));
+	node_values = vector<int>(nvertices, 0);
+      } else {
+	extract_edge_info(line, i, j , cost);
+
+	// build current edge
+	edges[i][j] = new Edge(cost);
+	edges[j][i] = new Edge(cost);
+      }
+      number_of_lines++;
+    }
+    file.close();
+  } else{
+    cout << "unable to open file " << file_name << endl;
+  }
+
+}
+
+// read line with format (i, j, cost) and set values into i, j, cost passed as ref.
+void Graph::extract_edge_info(string line, int& i, int& j, int& cost){
+
+    int next_space(0); // position of next space in string.
+    string rest; // rest of string to parse.
+
+    // get position of first space position
+    // read i: extract info from line
+    next_space= line.find(' ');
+    i = atoi(line.substr(0, next_space).c_str());
+
+    // keep track of rest of string
+    rest = line.substr(next_space + 1,  string::npos);
+    
+    // update space position
+    next_space = rest.find(' ');
+    
+    // read j: extract info from rest of line
+    j = atoi(rest.substr(0, next_space).c_str());
+    
+    // keep track of rest of string
+    rest = rest.substr(next_space + 1, string::npos);
+    // update space positon
+    next_space = rest.find(' ');
+    
+    // read cost: extract info from rest of line
+    cost  = atoi(rest.substr(0, next_space).c_str());
+}
 
 // initialize sample graph (with distances of edges at 1 and fully connected)
 void Graph::initialize(){
