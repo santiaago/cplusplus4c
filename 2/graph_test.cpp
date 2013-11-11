@@ -225,9 +225,11 @@ void tests(){
   test_graph_class();
   cout << "----------" << endl;
   test_shortest_path_class();
+  cout << "----------" << endl;
 }
 
 int main(){
+  tests();
   cout << "200 words of c++" << endl;
 
   cout << "Average path of Graph with density 20%: ";

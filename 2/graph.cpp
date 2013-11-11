@@ -97,6 +97,7 @@ void Graph::add(const int x, const int y){
 void Graph::remove(const int x, const int y){
   if(x < edges.size() && y < edges[x].size()){
     if(edges[x][y]){
+      delete edges[x][y];
       edges[x][y] = NULL;
       edges[y][x] = NULL; // undirected graph
       nedges--;
