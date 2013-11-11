@@ -51,7 +51,7 @@ public:
     nvertices(0), nedges(0), edges(0, vector<Edge*>(0)), node_values(0,0), density_edge(1), range_distance(10){}
   Graph(const int number_nodes);
   Graph(const int nnodes, const double density_edge, const int range_dist);
-
+  ~Graph();
   void initialize();
   int V(); // returns the number of vertices in the graph
   int E(); // returns the number of edges in the graph

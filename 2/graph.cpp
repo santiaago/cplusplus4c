@@ -37,6 +37,17 @@ Graph::Graph(const int number_vertices, const double dense_edge, const int range
 Graph::Graph(const int number_vertices):
   nedges(0), nvertices(number_vertices), edges(number_vertices, vector<Edge*>(number_vertices)), node_values(number_vertices, 0), density_edge(0), range_distance(0){}
 
+// Graph destructor
+Graph::~Graph(){
+  for(int i = 0; i < edges.size(); i++){
+    for(int j = i; j < edges.size(); j++){
+      if(edges[i][j] != NULL){
+	delete edges[i][j];
+	edges[i][j] = edges[j][i]= NULL;
+      }
+    }
+  }
+}
 
 // initialize sample graph (with distances of edges at 1 and fully connected)
 void Graph::initialize(){

@@ -52,6 +52,7 @@ public:
   Graph(const int number_nodes);
   Graph(const int nnodes, const double density_edge, const int range_dist);
   Graph(const string file_name); // build a graph from file
+  ~Graph();
   void initialize();
   int V(); // returns the number of vertices in the graph
   int E(); // returns the number of edges in the graph

@@ -79,6 +79,18 @@ Graph::Graph(const string file_name):nedges(0), density_edge(0), range_distance(
 
 }
 
+// Graph destructor
+Graph::~Graph(){
+  for(int i = 0; i < edges.size(); i++){
+    for(int j = i; j < edges.size(); j++){
+      if(edges[i][j] != NULL){
+	delete edges[i][j];
+	edges[i][j] = edges[j][i]= NULL;
+      }
+    }
+  }
+}
+
 // read line with format (i, j, cost) and set values into i, j, cost passed as ref.
 void Graph::extract_edge_info(string line, int& i, int& j, int& cost){
 
@@ -167,6 +179,7 @@ void Graph::add(const int x, const int y){
 void Graph::remove(const int x, const int y){
   if(x < edges.size() && y < edges[x].size()){
     if(edges[x][y]){
+      delete edges[x][y];
       edges[x][y] = NULL;
       edges[y][x] = NULL; // undirected graph
       nedges--;
