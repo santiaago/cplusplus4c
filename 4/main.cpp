@@ -11,4 +11,30 @@ using namespace std;
 
 int main(){
   cout << "HW 4" << endl;
+  int size = 7;
+
+  string space =  "";
+  for(int j = 0; j < 7; j++){
+    cout << space;
+    for(int i = 0; i < 7; i++){
+      cout << " . ";
+      if(i != 6)
+	cout << " - ";
+    }
+    cout << endl;
+    if(j != 6){
+      space += " ";
+      cout << space;
+      cout << " \\ ";
+      for(int i = 0; i < 6; i++){
+	cout << "  / " << "\\ ";
+      }
+      cout << endl;
+      space += " ";
+    }
+  }
+  cout << endl << endl;
+// .  -  .  -  .  -  .  -  .
+//  \   / \ 
+
 }
