@@ -9,10 +9,11 @@ using namespace std;
 // Hex class
 class Hex{
  public:
- Hex():board_size(7){}
- Hex(int size):board_size(size){}
+  Hex();//:board_size(7){}
+  Hex(int size);//:board_size(size){}
   void display();
  private:
   int board_size;
+  Graph game;
 };
 #endif // HEX_H
