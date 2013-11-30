@@ -3,6 +3,7 @@
 #define HEX_H
 
 #include <iostream>
+#include "graph.h"
 
 using namespace std;
 
@@ -13,6 +14,7 @@ class Hex{
   Hex(int size);//:board_size(size){}
   void display();
  private:
+  void build_hex_graph();
   int board_size;
   Graph game;
 };
